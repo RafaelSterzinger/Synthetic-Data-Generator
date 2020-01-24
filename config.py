@@ -1,0 +1,1 @@
+TRAIN_SIZE = 0.70
