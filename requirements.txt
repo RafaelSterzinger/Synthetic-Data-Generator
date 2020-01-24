@@ -6,3 +6,4 @@ numpy==1.18.1
 PyYAML==5.3
 scipy==1.4.1
 six==1.14.0
+split-folders=0.3.1
