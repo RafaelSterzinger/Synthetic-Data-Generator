@@ -1,0 +1,3 @@
+Provide a short how-to explaining the way to start your program
+(which is the main class/file, which command-line options does it
+expect, ..).
