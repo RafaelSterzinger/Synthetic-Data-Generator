@@ -14,4 +14,4 @@ class Generator:
         model.add(cfg.latent_dim * 8)
         model.add(LeakyReLU())
         model.add(Dense(cfg.feature_dim, activation='sigmoid'))
-        self.model = model.compile()
+        self.model = model
