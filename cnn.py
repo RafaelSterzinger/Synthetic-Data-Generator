@@ -2,21 +2,31 @@ import tensorflow as tf
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
-import split_data
-
-#%%
-
-tf.config.list_physical_devices('GPU')
-
 
 # %% load data
 batch_size = 128
 # All images will be rescaled by 1./255
-train_datagen = ImageDataGenerator(rescale=1.0/255)
+scale = 1.0 / 255
+size = (200, 200)
+train_data_generator = ImageDataGenerator(rescale=scale)
+validation_data_generator = ImageDataGenerator(rescale=scale)
+test_data_generator = ImageDataGenerator(rescale=scale)
 # Flow training images in batches of 128 using train_datagen generator
-train_generator = train_datagen.flow_from_directory(
-    'data',  # This is the source directory for training images
-    target_size=(200, 200),  # All images will be resized to 200 x 200
+train_generator = train_data_generator.flow_from_directory(
+    'data/train',  # This is the source directory for training images
+    target_size=size,  # All images will be resized to 200 x 200
+    batch_size=batch_size,
+    # Since we use categorical_crossentropy loss, we need categorical labels
+    class_mode='categorical')
+validation_generator = validation_data_generator.flow_from_directory(
+    'data/val',  # This is the source directory for training images
+    target_size=size,  # All images will be resized to 200 x 200
+    batch_size=batch_size,
+    # Since we use categorical_crossentropy loss, we need categorical labels
+    class_mode='categorical')
+test_generator = test_data_generator.flow_from_directory(
+    'data/test',  # This is the source directory for training images
+    target_size=size,  # All images will be resized to 200 x 200
     batch_size=batch_size,
     # Since we use categorical_crossentropy loss, we need categorical labels
     class_mode='categorical')
@@ -58,32 +68,33 @@ model.compile(loss='categorical_crossentropy',
 
 n_epochs = 30
 total_sample = train_generator.n
-history = model.fit_generator(
+history = model.fit(
     train_generator,
     steps_per_epoch=int(total_sample / batch_size),
     epochs=n_epochs,
-    verbose=1)
+    verbose=1,
+    validation_data=validation_generator)
 
 # %% plot training
 
-plt.figure(figsize=(7,4))
-plt.plot([i+1 for i in range(n_epochs)],history.history['acc'],'-o',c='k',lw=2,markersize=9)
+plt.figure(figsize=(7, 4))
+plt.plot([i + 1 for i in range(n_epochs)], history.history['acc'], '-o', c='k', lw=2, markersize=9)
 plt.grid(True)
-plt.title("Training accuracy with epochs\n",fontsize=18)
-plt.xlabel("Training epochs",fontsize=15)
-plt.ylabel("Training accuracy",fontsize=15)
+plt.title("Training accuracy with epochs\n", fontsize=18)
+plt.xlabel("Training epochs", fontsize=15)
+plt.ylabel("Training accuracy", fontsize=15)
 plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 plt.show()
 
 # %% plot loss
 
-plt.figure(figsize=(7,4))
-plt.plot([i+1 for i in range(n_epochs)],history.history['loss'],'-o',c='k',lw=2,markersize=9)
+plt.figure(figsize=(7, 4))
+plt.plot([i + 1 for i in range(n_epochs)], history.history['loss'], '-o', c='k', lw=2, markersize=9)
 plt.grid(True)
-plt.title("Training loss with epochs\n",fontsize=18)
-plt.xlabel("Training epochs",fontsize=15)
-plt.ylabel("Training loss",fontsize=15)
+plt.title("Training loss with epochs\n", fontsize=18)
+plt.xlabel("Training epochs", fontsize=15)
+plt.ylabel("Training loss", fontsize=15)
 plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 plt.show()

@@ -1,6 +1,7 @@
 import os
 from tensorflow.keras.preprocessing.image import load_img, save_img
 import PIL
+import split_folders
 
 # %% load data
 path = 'data'
@@ -18,3 +19,7 @@ for root, dirs, files in os.walk(path):
 # %% resize images
 print(data)
 data["apples"][0].resize((224, 224), PIL.Image.LANCZOS).show()
+
+# %% split data
+
+split_folders.ratio('data/original', 'data', seed=1337, ratio=(.8, .1, .1))
