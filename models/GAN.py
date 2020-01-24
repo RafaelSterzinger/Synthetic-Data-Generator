@@ -2,8 +2,9 @@ import numpy as np
 import config as cfg
 from models import Discriminator, Generator
 import matplotlib.pyplot as plt
+from PIL import Image
 
-
+#https://pathmind.com/wiki/generative-adversarial-network-gan
 def train(epoch: int, batch_size=128):
     generator = Generator.generator()
 
@@ -12,7 +13,8 @@ def train(epoch: int, batch_size=128):
         noise = np.random.normal(0, 1, (1,cfg.latent_dim))
         type(noise)
         fake_img = generator.predict(noise)
-        plt.imshow(np.squeeze(fake_img))
+        img = Image.fromarray(np.squeeze(fake_img))
+        img.show()
 
         # train discriminator
         # dis_loss_real = discriminator.predict_on_batch()
