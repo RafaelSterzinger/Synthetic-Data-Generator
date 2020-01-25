@@ -8,6 +8,7 @@ import ml3.config as cfg
 from ml3.eval.plot import *
 from ml3.preprocess import train_data_generator, validation_data_generator
 
+
 def build_cnn_model(class_amount: int):
     model = tf.keras.models.Sequential([
         # Note the input shape is the desired size of the image 200x 200 with 3 bytes color
@@ -69,10 +70,10 @@ if __name__ == '__main__':
 
     model, history = train(args.dir, args.episodes)
 
-    plot_loss(args.episodes, history)
-    plot_training(args.episodes, history)
-    plot_validation(args.episodes, history)
-    plot_validation_loss(args.episodes, history)
+    plot_loss(history)
+    plot_training(history)
+    plot_validation(history)
+    plot_validation_loss(history)
 
     path = 'models/' + args.dir + '/' + args.mode + '.h5'
 
