@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import tensorflow as tf
 from tensorflow.keras.optimizers import RMSprop
@@ -7,12 +8,11 @@ import ml3.config as cfg
 from ml3.eval.plot import *
 from ml3.preprocess import train_data_generator, validation_data_generator
 
-
 def build_cnn_model(class_amount: int):
     model = tf.keras.models.Sequential([
         # Note the input shape is the desired size of the image 200x 200 with 3 bytes color
         # The first convolution
-        tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(200, 200, 3)),
+        tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(cfg.SIZE, cfg.SIZE, 3)),
         tf.keras.layers.MaxPooling2D(2, 2),
         # The second convolution
         tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
@@ -75,4 +75,12 @@ if __name__ == '__main__':
     plot_validation_loss(args.episodes, history)
 
     path = 'models/' + args.dir + '/' + args.mode + '.h5'
+
+    try:
+        # Create target Directory
+        os.mkdir('models/' + args.dir)
+        print("Created directory")
+    except FileExistsError:
+        print("Directory already exists")
+
     model.save(path, overwrite=True)

@@ -1,7 +1,7 @@
 import argparse
 
 import split_folders
-from keras_preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 import ml3.config as cfg
 

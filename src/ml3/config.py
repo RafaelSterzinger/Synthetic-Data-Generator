@@ -5,9 +5,9 @@ SCALE = 1 / 255
 BATCH_SIZE = 128
 
 # general
-size = 224
-feature_dim = size * size
-IMAGE_SHAPE = (size, size)
+SIZE = 224
+feature_dim = SIZE * SIZE
+IMAGE_SHAPE = (SIZE, SIZE)
 
 # evaluation
 EPISODES = 30
