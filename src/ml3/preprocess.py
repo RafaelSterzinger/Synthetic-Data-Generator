@@ -1,5 +1,5 @@
 import argparse
-
+import os
 import split_folders
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, DirectoryIterator
 
@@ -37,5 +37,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder')
     args = parser.parse_args()
+
+    try:
+        # Create target directory
+        os.mkdir('data/splits')
+        print("Created directory")
+    except FileExistsError:
+        print("Directory already exists")
 
     split_data(args.dir)
