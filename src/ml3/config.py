@@ -5,7 +5,7 @@ SCALE = 1 / 255
 BATCH_SIZE = 128
 
 # general
-size = 224
+size = 64
 feature_dim = size * size
 IMAGE_SHAPE = (size, size)
 
