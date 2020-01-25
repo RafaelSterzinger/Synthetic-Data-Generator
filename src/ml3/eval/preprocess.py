@@ -4,7 +4,7 @@ import PIL
 import split_folders
 
 # %% load data
-path = 'data'
+path = '../../../data'
 data = {}
 for root, dirs, files in os.walk(path):
     label = root.split('/')[-1]

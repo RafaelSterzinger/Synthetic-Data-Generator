@@ -4,7 +4,7 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.optimizers import Adam
 from keras.utils import plot_model
 
-import config as cfg
+from ml3 import config as cfg
 
 
 def discriminator():
