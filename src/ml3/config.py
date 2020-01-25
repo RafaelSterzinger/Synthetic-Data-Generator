@@ -1,8 +1,16 @@
-latent_dim = 256
-size = 28
+# pre processing
+TRAIN = 0.8
+VALIDATION = 0.2
+SCALE = 1 / 255
+BATCH_SIZE = 128
+
+# general
+size = 224
 feature_dim = size * size
-image_shape = (size, size)
-TRAIN_SIZE = 0.70
+IMAGE_SHAPE = (size, size)
+
+# evaluation
+EPISODES = 30
 
 # Generation resolution - Must be square
 # Training data is also scaled to this.
@@ -23,5 +31,4 @@ SEED_SIZE = 100
 # Configuration
 DATA_PATH = 'data'
 EPOCHS = 50
-BATCH_SIZE = 32
 BUFFER_SIZE = 60000
