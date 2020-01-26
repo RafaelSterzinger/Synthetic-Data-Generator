@@ -102,5 +102,4 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mode', choices=['real', 'augm', 'fake'], required=True, help='mode for training',
                         default='real')
     args = parser.parse_args()
-
     run(args.dir, args.epochs, args.mode)
