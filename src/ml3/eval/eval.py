@@ -45,7 +45,7 @@ def build_cnn_model(class_amount: int):
 
 
 def train(path: str, episodes: int, mode: str):
-    train_generator = train_data_generator(path, True if mode == 'augm' else 'False')
+    train_generator = train_data_generator(path, augmentation=True if mode == 'augm' else 'False')
     validation_generator = validation_data_generator(path)
 
     class_amount = len(set(train_generator.classes))

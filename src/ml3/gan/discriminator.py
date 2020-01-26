@@ -1,30 +1,40 @@
-from keras import Sequential, Model
-from keras.layers import Dense, Dropout, Input
+from keras import Sequential
+from keras.layers import Dense, Dropout, Conv2D, ZeroPadding2D, BatchNormalization, Flatten
 from keras.layers.advanced_activations import LeakyReLU
-from keras.optimizers import Adam
 from keras.utils import plot_model
 
-from ml3 import config as cfg
+import ml3.config as cfg
 
 
-def discriminator():
+def build_discriminator():
+    activation = LeakyReLU(alpha=0.2)
+
     model = Sequential()
-    model.add(Dense(cfg.latent_dim * 8, input_dim=cfg.feature_dim))
-    model.add(LeakyReLU())
-    model.add(Dropout(0.5))
-    model.add(Dense(cfg.latent_dim * 4))
-    model.add(LeakyReLU())
-    model.add(Dropout(0.5))
-    model.add(Dense(cfg.latent_dim * 2))
-    model.add(LeakyReLU())
-    model.add(Dropout(0.5))
-    model.add(Dense(1))
-    img = Input(shape=cfg.image_shape)
-    model = model(img)
-    model = Model(img, model)
-    model.compile(optimizer=Adam(beta_1=0.0, beta_2=0.9), loss='binary_crossentropy', metrics=['accuracy'])
+
+    model.add(Conv2D(32, kernel_size=3, strides=2,
+                     input_shape=cfg.IMAGE_SHAPE, padding="same"))
+    model.add(activation)
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
+    model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
+    model.add(activation)
+    model.add(Dropout(0.25))
+
+    model.add(BatchNormalization(momentum=0.8))
+    model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
+    model.add(activation)
+    model.add(Dropout(0.25))
+
+    model.add(BatchNormalization(momentum=0.8))
+    model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
+    model.add(activation)
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+    model.add(Dense(1, activation='sigmoid'))
 
     model.summary()
-    plot_model(model, "plots/discriminator.png")
+   # plot_model(model, "plots/discriminator.png")
 
     return model

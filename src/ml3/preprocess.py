@@ -20,7 +20,7 @@ def train_data_generator(folder: str, augmentation=False, classes=None) -> Direc
         train_data_generator = ImageDataGenerator(rescale=cfg.SCALE)
     generator = train_data_generator.flow_from_directory(
         'data/splits/' + folder + '/train',
-        target_size=cfg.IMAGE_SHAPE,
+        target_size=(cfg.SIZE, cfg.SIZE),
         batch_size=cfg.EVAL_BATCH_SIZE,
         class_mode='categorical',
         interpolation='lanczos',
@@ -32,7 +32,7 @@ def validation_data_generator(folder: str) -> DirectoryIterator:
     validation_data_generator = ImageDataGenerator(rescale=cfg.SCALE)
     generator = validation_data_generator.flow_from_directory(
         'data/splits/' + folder + '/val',
-        target_size=cfg.IMAGE_SHAPE,
+        target_size=(cfg.SIZE, cfg.SIZE),
         class_mode='categorical',
         interpolation='lanczos')
     return generator

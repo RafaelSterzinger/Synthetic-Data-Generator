@@ -3,9 +3,8 @@
 # Training data is also scaled to this.
 # Note GENERATE_RES 4 or higher  will blow Google CoLab's memory and have not
 # been tested extensivly.
-GENERATE_RES = 3  # Generation resolution factor (1=32, 2=64, 3=96, 4=128, etc.)
+GENERATE_RES = 2  # Generation resolution factor (1=32, 2=64, 3=96, 4=128, etc.)
 GENERATE_SQUARE = 32 * GENERATE_RES  # rows/cols (should be square)
-IMAGE_CHANNELS = 3
 
 # Preview image
 PREVIEW_ROWS = 4
@@ -27,7 +26,8 @@ SCALE = 1 / 255
 
 # general
 SIZE = GENERATE_SQUARE
-IMAGE_SHAPE = (SIZE, SIZE)
+IMAGE_CHANNELS = 3
+IMAGE_SHAPE = (SIZE, SIZE, IMAGE_CHANNELS)
 
 # evaluation
 EVAL_EPOCHS = 30
