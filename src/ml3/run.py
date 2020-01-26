@@ -1,15 +1,13 @@
-import numpy as np
+import argparse
+
 import ml3.config as cfg
-import matplotlib.pyplot as plt
-from ml3.eval import *
-from ml3.gan import generator, discriminator
-from PIL import Image
-import tensorflow as tf
+import os
 
 # https://pathmind.com/wiki/generative-adversarial-network-gan
 from ml3.gan.gan import GAN
-from ml3.config import *
 from ml3.preprocess import train_data_generator
+import ml3.eval.eval as eval
+
 
 def train(epoch: int, batch_size=128):
     pass
@@ -29,13 +27,30 @@ def train(epoch: int, batch_size=128):
 
 def train_gan(path, class_name):
     data_generator = train_data_generator(path, classes=[class_name])
-    # print(data_generator)
-    # print(data_generator.class_indices)
-
-    # train_dataset = tf.data.Dataset.from_tensor_slices(data_generator).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+    print(f"Training GAN, path {path}, class {class_name}")
     gan = GAN()
     gan.train(data_generator)
+    return gan.generator
+
+
+def generate_images(gan, fake_path):
+    print(f'Generating fake images in {fake_path}')
+    # gan.generate()
+    pass
 
 
 if __name__ == '__main__':
-    train_gan('fruit', 'apples')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder to train the model on',
+                        default='data')
+    parser.add_argument('-e', '--epochs', type=int, help='number of epochs', default=cfg.EVAL_EPOCHS)
+    parser.add_argument('-m', '--mode', choices=['real', 'augm', 'fake'], required=True, help='mode for training',
+                        default='real')
+    args = parser.parse_args()
+    if args.mode == 'fake':
+        fake_path = 'data/fake/' + args.dir
+        path = f'data/splits/{args.dir}/train'
+        for dir in os.listdir(path):
+            generator = train_gan(args.dir, dir)
+            generate_images(generator, fake_path + '/' + dir)
+    eval.run(args.dir, args.epochs, args.mode)
