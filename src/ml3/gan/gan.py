@@ -10,6 +10,10 @@ import time
 import numpy as np
 import os
 
+from tensorflow.keras.preprocessing.image import DirectoryIterator
+from PIL import Image
+from matplotlib import cm
+
 
 # from https://github.com/jeffheaton/t81_558_deep_learning/blob/master/t81_558_class_07_2_Keras_gan.ipynb
 
@@ -56,6 +60,9 @@ class Generator(object):
     def plot_model(self):
         plot_model(self.model, "plots/generator.png")
 
+    def save(self, path):
+        self.model.save(path)
+
 
 class Discriminator(object):
 
@@ -97,6 +104,12 @@ class Discriminator(object):
 
         return model
 
+    def plot_model(self):
+        plot_model(self.model, "plots/discriminator.png")
+
+    def save(self, path):
+        self.model.save(path)
+
 
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
@@ -116,8 +129,9 @@ class GAN(object):
 
     def __init__(self) -> None:
         super().__init__()
-        self.generator_optimizer = tf.keras.optimizers.Adam(1.5e-4, 0.5)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(1.5e-4, 0.5)
+        # 1.5e-4
+        self.generator_optimizer = tf.keras.optimizers.Adam(beta_1=0.0, beta_2=0.9)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(beta_1=0.0, beta_2=0.9)
         self.generator = Generator()
         self.discriminator = Discriminator()
 
@@ -172,7 +186,7 @@ class GAN(object):
         im = Image.fromarray(image_array)
         im.save(filename)
 
-    def train(self, dataset):
+    def train(self, dataset: DirectoryIterator):
         fixed_seed = np.random.normal(0, 1, (PREVIEW_ROWS * PREVIEW_COLS, SEED_SIZE))
         start = time.time()
 
@@ -181,11 +195,14 @@ class GAN(object):
 
             gen_loss_list = []
             disc_loss_list = []
-
-            for image_batch in dataset:
+            index = 0
+            for image_batch, _ in dataset:
+                index += 1
                 t = self.train_step(image_batch)
                 gen_loss_list.append(t[0])
                 disc_loss_list.append(t[1])
+                if index == 32:
+                    break
 
             g_loss = sum(gen_loss_list) / len(gen_loss_list)
             d_loss = sum(disc_loss_list) / len(disc_loss_list)
@@ -196,3 +213,9 @@ class GAN(object):
 
         elapsed = time.time() - start
         print(f'Training time: {elapsed}')
+        self.save_models()
+        print('Saved models')
+
+    def save_models(self, dataset):
+        self.generator.save(f'models/{dataset}-generator.h5')
+        self.discriminator.save(f'models/{dataset}-discriminator.h5')

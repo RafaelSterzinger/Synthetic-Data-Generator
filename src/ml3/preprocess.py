@@ -1,7 +1,8 @@
 import argparse
 import os
+
 import split_folders
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, DirectoryIterator
 
 import ml3.config as cfg
 
@@ -11,25 +12,29 @@ def split_data(folder: str):
                         ratio=(cfg.TRAIN, cfg.VALIDATION))
 
 
-def train_data_generator(folder: str, augmentation = False):
+def train_data_generator(folder: str, augmentation=False, classes=None) -> DirectoryIterator:
     if augmentation:
-        train_data_generator = ImageDataGenerator(rescale=cfg.SCALE, horizontal_flip=True, brightness_range=[0.2,1.0], zoom_range=[0.5,1.0], rotation_range=25)
+        train_data_generator = ImageDataGenerator(rescale=cfg.SCALE, horizontal_flip=True, brightness_range=[0.2, 1.0],
+                                                  zoom_range=[0.5, 1.0], rotation_range=25)
     else:
         train_data_generator = ImageDataGenerator(rescale=cfg.SCALE)
     generator = train_data_generator.flow_from_directory(
         'data/splits/' + folder + '/train',
         target_size=cfg.IMAGE_SHAPE,
         batch_size=cfg.EVAL_BATCH_SIZE,
-        class_mode='categorical')
+        class_mode='categorical',
+        interpolation='lanczos',
+        classes=classes)
     return generator
 
 
-def validation_data_generator(folder: str):
+def validation_data_generator(folder: str) -> DirectoryIterator:
     validation_data_generator = ImageDataGenerator(rescale=cfg.SCALE)
     generator = validation_data_generator.flow_from_directory(
         'data/splits/' + folder + '/val',
         target_size=cfg.IMAGE_SHAPE,
-        class_mode='categorical')
+        class_mode='categorical',
+        interpolation='lanczos')
     return generator
 
 
