@@ -5,7 +5,7 @@ SCALE = 1 / 255
 BATCH_SIZE = 128
 
 # general
-SIZE = 64
+SIZE = 128
 feature_dim = SIZE * SIZE
 IMAGE_SHAPE = (SIZE, SIZE)
 
@@ -16,7 +16,7 @@ EPISODES = 30
 # Training data is also scaled to this.
 # Note GENERATE_RES 4 or higher  will blow Google CoLab's memory and have not
 # been tested extensivly.
-GENERATE_RES = 2  # Generation resolution factor (1=32, 2=64, 3=96, 4=128, etc.)
+GENERATE_RES = 4  # Generation resolution factor (1=32, 2=64, 3=96, 4=128, etc.)
 GENERATE_SQUARE = 32 * GENERATE_RES  # rows/cols (should be square)
 IMAGE_CHANNELS = 3
 
@@ -30,5 +30,5 @@ SEED_SIZE = 100
 
 # Configuration
 DATA_PATH = 'data'
-EPOCHS = 50
+EPOCHS = 128
 BUFFER_SIZE = 60000
