@@ -11,12 +11,15 @@ def split_data(folder: str):
                         ratio=(cfg.TRAIN, cfg.VALIDATION))
 
 
-def train_data_generator(folder: str):
-    train_data_generator = ImageDataGenerator(rescale=cfg.SCALE)
+def train_data_generator(folder: str, augmentation = False):
+    if augmentation:
+        train_data_generator = ImageDataGenerator(rescale=cfg.SCALE, horizontal_flip=True, brightness_range=[0.2,1.0], zoom_range=[0.5,1.0], rotation_range=25)
+    else:
+        train_data_generator = ImageDataGenerator(rescale=cfg.SCALE)
     generator = train_data_generator.flow_from_directory(
         'data/splits/' + folder + '/train',
         target_size=cfg.IMAGE_SHAPE,
-        batch_size=cfg.BATCH_SIZE,
+        batch_size=cfg.EVAL_BATCH_SIZE,
         class_mode='categorical')
     return generator
 
@@ -30,16 +33,19 @@ def validation_data_generator(folder: str):
     return generator
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder')
-    args = parser.parse_args()
-
+def run(dir: str):
     try:
         # Create target directory
         os.mkdir('data/splits')
         print("Created directory")
     except FileExistsError:
         print("Directory already exists")
+    split_data(dir)
 
-    split_data(args.dir)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder')
+    args = parser.parse_args()
+
+    run(args.dir)

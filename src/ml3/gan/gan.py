@@ -126,7 +126,7 @@ class GAN(object):
     # This annotation causes the function to be "compiled".
     @tf.function
     def train_step(self, real_images):
-        seed = tf.random.normal([BATCH_SIZE, SEED_SIZE])
+        seed = tf.random.normal([EVAL_BATCH_SIZE, SEED_SIZE])
 
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
             generated_images = self.generator.model(seed, training=True)

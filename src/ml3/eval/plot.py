@@ -3,7 +3,7 @@ from keras.callbacks import History
 
 # %% plot accuracy
 def plot_training(history: History):
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(8, 5))
     plt.plot([i + 1 for i in range(len(history.epoch))], history.history['acc'], '-o', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Training accuracy with epochs\n", fontsize=18)
@@ -11,12 +11,11 @@ def plot_training(history: History):
     plt.ylabel("Training accuracy", fontsize=15)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
-    plt.show()
 
 
 # %% plot loss
 def plot_loss(history: History):
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(8, 5))
     plt.plot([i + 1 for i in range(len(history.epoch))], history.history['loss'], '-o', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Training loss with epochs\n", fontsize=18)
@@ -24,12 +23,11 @@ def plot_loss(history: History):
     plt.ylabel("Training loss", fontsize=15)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
-    plt.show()
 
 
 # %% plot validation accuracy
 def plot_validation(history: History):
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(8, 5))
     plt.plot([i + 1 for i in range(len(history.epoch))], history.history['val_acc'], '-o', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Validation accuracy with epochs\n", fontsize=18)
@@ -37,12 +35,11 @@ def plot_validation(history: History):
     plt.ylabel("Validation accuracy", fontsize=15)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
-    plt.show()
 
 
 # %% plot validation loss
 def plot_validation_loss(history: History):
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(8, 5))
     plt.plot([i + 1 for i in range(len(history.epoch))], history.history['val_loss'], '-o', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Validation loss with epochs\n", fontsize=18)
@@ -50,12 +47,11 @@ def plot_validation_loss(history: History):
     plt.ylabel("Validation loss", fontsize=15)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
-    plt.show()
 
 
 # %% plot validation loss
 def plot_loss_combine(history_gen: History, history_dis: History):
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(8, 5))
     plt.plot([i + 1 for i in range(len(history_gen.epoch))], history_gen.history['loss'], '-o', lw=2, markersize=9,
              color='blue')
     plt.plot([i + 1 for i in range(len(history_dis.epoch))], history_dis.history['loss'], '-o', lw=2, markersize=9,
@@ -67,4 +63,3 @@ def plot_loss_combine(history_gen: History, history_dis: History):
     plt.ylabel("Training loss", fontsize=15)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
-    plt.show()

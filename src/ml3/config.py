@@ -2,15 +2,14 @@
 TRAIN = 0.8
 VALIDATION = 0.2
 SCALE = 1 / 255
-BATCH_SIZE = 128
 
 # general
 SIZE = 224
-feature_dim = SIZE * SIZE
 IMAGE_SHAPE = (SIZE, SIZE)
 
 # evaluation
-EPISODES = 30
+EVAL_EPOCHS = 30
+EVAL_BATCH_SIZE = 128
 
 # Generation resolution - Must be square
 # Training data is also scaled to this.
