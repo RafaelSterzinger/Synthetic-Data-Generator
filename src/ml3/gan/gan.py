@@ -130,8 +130,8 @@ class GAN(object):
     def __init__(self) -> None:
         super().__init__()
         # 1.5e-4
-        self.generator_optimizer = tf.keras.optimizers.Adam(beta_1=0.0, beta_2=0.9)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(beta_1=0.0, beta_2=0.9)
+        self.generator_optimizer = tf.keras.optimizers.Adam(1.5e-4, 0.5)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(1.5e-4, 0.5)
         self.generator = Generator()
         self.discriminator = Discriminator()
 
@@ -187,6 +187,9 @@ class GAN(object):
         im.save(filename)
 
     def train(self, dataset: DirectoryIterator):
+        dataset_size = dataset.samples
+        dataset.batch_size = dataset_size
+        X, y = dataset.next()
         fixed_seed = np.random.normal(0, 1, (PREVIEW_ROWS * PREVIEW_COLS, SEED_SIZE))
         start = time.time()
 
@@ -195,14 +198,10 @@ class GAN(object):
 
             gen_loss_list = []
             disc_loss_list = []
-            index = 0
-            for image_batch, _ in dataset:
-                index += 1
-                t = self.train_step(image_batch)
-                gen_loss_list.append(t[0])
-                disc_loss_list.append(t[1])
-                if index == 32:
-                    break
+
+            gen_loss, disc_loss = self.train_step(X)
+            gen_loss_list.append(gen_loss)
+            disc_loss_list.append(disc_loss)
 
             g_loss = sum(gen_loss_list) / len(gen_loss_list)
             d_loss = sum(disc_loss_list) / len(disc_loss_list)
@@ -213,7 +212,6 @@ class GAN(object):
 
         elapsed = time.time() - start
         print(f'Training time: {elapsed}')
-        self.save_models()
         print('Saved models')
 
     def save_models(self, dataset):
