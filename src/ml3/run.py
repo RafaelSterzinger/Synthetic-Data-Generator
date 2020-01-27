@@ -4,7 +4,7 @@ import ml3.config as cfg
 import os
 
 # https://pathmind.com/wiki/generative-adversarial-network-gan
-from ml3.gan.gan import GAN
+from ml3.gan.gan2 import GAN
 from ml3.preprocess import train_data_generator
 import ml3.eval.eval as eval
 
@@ -33,10 +33,19 @@ def train_gan(path, class_name):
     return gan.generator
 
 
-def generate_images(gan, fake_path):
+def generate_images(dir: str, model_epoch: int):
+    fake_path = f'data/fake/{dir}'
     print(f'Generating fake images in {fake_path}')
-    # gan.generate()
-    pass
+    if not os.path.exists(fake_path):
+        os.mkdir(fake_path)
+    path = f'data/splits/{dir}/train'
+    for _class in os.listdir(path):
+        fake_path_class = f'{fake_path}/{_class}'
+        if not os.path.exists(fake_path_class):
+            os.mkdir(fake_path_class)
+        gan = GAN(dir, _class)
+        gan.load_model(model_epoch)
+        gan.generate_images(fake_path_class, 100)
 
 
 if __name__ == '__main__':
@@ -48,9 +57,7 @@ if __name__ == '__main__':
                         default='real')
     args = parser.parse_args()
     if args.mode == 'fake':
-        fake_path = 'data/fake/' + args.dir
-        path = f'data/splits/{args.dir}/train'
-        for dir in os.listdir(path):
-            generator = train_gan(args.dir, dir)
-            generate_images(generator, fake_path + '/' + dir)
-    eval.run(args.dir, args.epochs, args.mode)
+        if not os.path.exists('data/fake'):
+            os.mkdir('data/fake')
+        generate_images(args.dir, 500)
+    # eval.run(args.dir, args.epochs, args.mode)

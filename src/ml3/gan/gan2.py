@@ -12,6 +12,8 @@ from ml3.gan.generator import build_generator
 
 import matplotlib.pyplot as plt
 
+import pandas as pd
+
 
 class GAN():
     def __init__(self, path: str, _class: str):
@@ -50,12 +52,12 @@ class GAN():
 
         return model
 
-    def train(self, epochs, X_train, batch_size=128, save_interval=50):
+    def train(self, epochs, X_train, batch_size=128, save_interval=10):
 
         half_batch = int(batch_size / 2)
         num_batches = int(X_train.shape[0] / half_batch)
         print("Number of Batches : ", num_batches)
-
+        history = []
         for epoch in range(epochs):
             for iteration in range(num_batches):
                 # train discriminator
@@ -81,17 +83,22 @@ class GAN():
                 valid_y = np.array([1] * batch_size)
 
                 g_loss = self.combined_model.train_on_batch(noise, valid_y)
-
+                history.append([d_loss[0], 100 * d_loss[1], g_loss])
                 print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (
                     epoch, iteration, d_loss[0], 100 * d_loss[1], g_loss))
 
             self.save_imgs(epoch)
 
             if epoch % save_interval == 0:
-               self.save_model(epoch)
+                self.save_model(epoch)
+        return history
 
     def save_model(self, epoch):
         self.combined_model.save_weights(
+            f'{self.models}/model_epoch_{epoch}.h5')
+
+    def load_model(self, epoch):
+        self.combined_model.load_weights(
             f'{self.models}/model_epoch_{epoch}.h5')
 
     def save_imgs(self, epoch):
@@ -119,9 +126,29 @@ class GAN():
 
         plt.close()
 
+    def generate_images(self, path: str, count):
+        noise = np.random.normal(0, 1, (count, cfg.SEED_SIZE))
+        gen_imgs = self.generator.predict(noise)
+        gen_imgs = 0.5 * gen_imgs + 0.5
+
+        upper_limit = np.vectorize(lambda x: 1 if x > 1 else x)
+        under_limit = np.vectorize(lambda x: 0 if x < 0 else x)
+
+        gen_imgs = upper_limit(gen_imgs)
+        gen_imgs = under_limit(gen_imgs)
+
+        fig, axs = plt.subplots()
+        print(gen_imgs.shape)
+        print(type(axs))
+        for index in range(count):
+            axs.imshow(gen_imgs[index])
+            axs.axis('off')
+            fig.savefig(f"{path}/{index}.jpg")
+            index += 1
+        plt.close()
+
 
 def run(path: str):
-
     dir = f'models/{path}'
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -131,6 +158,7 @@ def run(path: str):
         os.mkdir(dir)
 
     for _class in os.listdir(f'data/splits/{path}/train'):
+        print(f'Start class {_class}')
         X_train = []
         img_list = glob.glob(f'data/splits/{path}/train/{_class}/*')
         for img_path in img_list:
@@ -140,11 +168,9 @@ def run(path: str):
         X_train = np.asarray(X_train)
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
-
-
         gan = GAN(path, _class)
-        gan.train(epochs=1000, X_train=X_train, batch_size=32, save_interval=5)
+        history = gan.train(epochs=100, X_train=X_train, batch_size=64, save_interval=50)
 
 
 if __name__ == '__main__':
-    run('fruits')
+    run('mnist')
