@@ -2,6 +2,7 @@ import glob
 import os
 
 import numpy as np
+from PIL import Image
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.preprocessing.image import img_to_array, load_img
@@ -136,16 +137,16 @@ class GAN():
 
         gen_imgs = upper_limit(gen_imgs)
         gen_imgs = under_limit(gen_imgs)
+        gen_imgs *= 255.0
 
-        fig, axs = plt.subplots()
-        print(gen_imgs.shape)
-        print(type(axs))
+        # fig, axs = plt.subplots()
         for index in range(count):
-            axs.imshow(gen_imgs[index])
-            axs.axis('off')
-            fig.savefig(f"{path}/{index}.jpg")
-            index += 1
-        plt.close()
+            im = Image.fromarray(gen_imgs[index].astype(np.uint8))
+            im.save(f"{path}/{index}.jpg")
+            # axs.imshow(gen_imgs[index])
+            # axs.axis('off')
+            # fig.savefig(f"{path}/{index}.jpg")
+            # index += 1
 
 
 def run(path: str):
