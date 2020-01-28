@@ -49,17 +49,4 @@ def plot_validation_loss(history: History):
     plt.yticks(fontsize=15)
 
 
-# %% plot validation loss
-def plot_loss_combine(history_gen: History, history_dis: History):
-    plt.figure(figsize=(8, 5))
-    plt.plot([i + 1 for i in range(len(history_gen.epoch))], history_gen.history['loss'], '-o', lw=2, markersize=9,
-             color='blue')
-    plt.plot([i + 1 for i in range(len(history_dis.epoch))], history_dis.history['loss'], '-o', lw=2, markersize=9,
-             color='orange')
-    plt.grid(True)
-    plt.legend(['Generator', 'Discriminator'])
-    plt.title("Validation loss with epochs\n", fontsize=18)
-    plt.xlabel("Training epochs", fontsize=15)
-    plt.ylabel("Training loss", fontsize=15)
-    plt.xticks(fontsize=15)
-    plt.yticks(fontsize=15)
+

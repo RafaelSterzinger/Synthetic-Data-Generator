@@ -1,3 +1,4 @@
+import argparse
 import glob
 import os
 
@@ -8,12 +9,9 @@ from keras.optimizers import Adam
 from keras.preprocessing.image import img_to_array, load_img
 
 import ml3.config as cfg
+import matplotlib.pyplot as plt
 from ml3.gan.discriminator import build_discriminator
 from ml3.gan.generator import build_generator
-
-import matplotlib.pyplot as plt
-
-import pandas as pd
 
 
 class GAN():
@@ -59,6 +57,7 @@ class GAN():
         num_batches = int(X_train.shape[0] / half_batch)
         print("Number of Batches : ", num_batches)
         history = []
+        d_loss = []
         for epoch in range(epochs):
             for iteration in range(num_batches):
                 # train discriminator
@@ -84,7 +83,7 @@ class GAN():
                 valid_y = np.array([1] * batch_size)
 
                 g_loss = self.combined_model.train_on_batch(noise, valid_y)
-                history.append([d_loss[0], 100 * d_loss[1], g_loss])
+                history.append([d_loss[0], g_loss, d_loss[1]])
                 print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (
                     epoch, iteration, d_loss[0], 100 * d_loss[1], g_loss))
 
@@ -92,6 +91,7 @@ class GAN():
 
             if epoch % save_interval == 0:
                 self.save_model(epoch)
+
         return history
 
     def save_model(self, epoch):
@@ -149,12 +149,35 @@ class GAN():
             # index += 1
 
 
-def run(path: str):
+# %% plot validation loss
+# history = [dis_loss, gen_loss, dis_acc]
+def plot_loss_combine(history_gan: [], epochs: int):
+    plt.figure(figsize=(8, 5))
+    plt.plot([x[0] for x in history_gan], '-', lw=2, markersize=9,
+             color='blue')
+    plt.plot([x[1] for x in history_gan], '-', lw=2, markersize=9,
+             color='orange')
+    plt.plot([x[2] for x in history_gan], '--', lw=2, markersize=9,
+             color='black')
+    plt.grid(True)
+    plt.legend(['Discriminator loss', 'Generator loss', 'Discriminator accuracy'])
+    plt.title("Validation loss with epochs\n", fontsize=18)
+    plt.xlabel("Training epochs", fontsize=15)
+    plt.ylabel("Training loss", fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+
+
+def run(path: str, epochs: int, save_interval: int):
     dir = f'models/{path}'
     if not os.path.exists(dir):
         os.mkdir(dir)
 
     dir = f'images/{path}'
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+
+    dir = f'plots/{path}'
     if not os.path.exists(dir):
         os.mkdir(dir)
 
@@ -170,8 +193,17 @@ def run(path: str):
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
         gan = GAN(path, _class)
-        history = gan.train(epochs=100, X_train=X_train, batch_size=64, save_interval=50)
+        history = gan.train(epochs=epochs, X_train=X_train, batch_size=64, save_interval=save_interval)
+
+        plot_loss_combine(history, epochs)
+        plt.savefig(dir + f"/{_class}_loss.png")
 
 
 if __name__ == '__main__':
-    run('mnist')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder')
+    parser.add_argument('-e', '--epochs', type=int, default=cfg.GAN_EPOCHS, help='amount of epochs to train')
+    parser.add_argument('-s', '--save_interval', type=int, default=cfg.SAVE_INTERVAL)
+    args = parser.parse_args()
+
+    run(args.dir, args.epochs, args.save_interval)
