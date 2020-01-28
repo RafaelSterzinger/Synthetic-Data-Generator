@@ -4,7 +4,7 @@ import ml3.config as cfg
 import os
 
 # https://pathmind.com/wiki/generative-adversarial-network-gan
-from ml3.gan.gan2 import GAN
+from ml3.gan.gan import GAN
 from ml3.preprocess import train_data_generator
 import ml3.eval.eval as eval
 

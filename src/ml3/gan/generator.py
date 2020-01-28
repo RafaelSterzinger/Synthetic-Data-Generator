@@ -4,7 +4,7 @@ from keras.models import Sequential
 
 import ml3.config as cfg
 
-# Make generator dynamic
+# TODO: Make generator dynamic e.g. images 128x128
 def build_generator():
     noise_shape = (cfg.SEED_SIZE,)
     activation = LeakyReLU(alpha=0.2)

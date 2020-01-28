@@ -1,219 +1,216 @@
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import *
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.utils import plot_model
-from ml3.config import *
-from PIL import Image
-
-import tensorflow as tf
-import time
-import numpy as np
+import argparse
+import glob
 import os
 
-from tensorflow.keras.preprocessing.image import DirectoryIterator
+import numpy as np
 from PIL import Image
-from matplotlib import cm
+from keras.models import Sequential
+from keras.optimizers import Adam
+from keras.preprocessing.image import img_to_array, load_img
+
+import ml3.config as cfg
+import matplotlib.pyplot as plt
+from ml3.gan.discriminator import build_discriminator
+from ml3.gan.generator import build_generator
 
 
-# from https://github.com/jeffheaton/t81_558_deep_learning/blob/master/t81_558_class_07_2_Keras_gan.ipynb
+class GAN():
+    def __init__(self, path: str, _class: str):
+        self._create_dirs(_class, path)
+        self._create_model()
 
-class Generator(object):
+    def _create_model(self):
+        d_optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999)
+        g_optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999)
+        # discriminator
+        self.discriminator = build_discriminator()
+        self.discriminator.compile(
+            loss="binary_crossentropy", optimizer=d_optimizer, metrics=["accuracy"])
 
-    def __init__(self) -> None:
-        super().__init__()
-        self.model = self.__build()
+        # generator
+        self.generator = build_generator()
 
-    def __build(self):
-        model = Sequential()
+        # model
+        self.combined_model = self.build_combined()
+        self.combined_model.compile(
+            loss="binary_crossentropy", optimizer=g_optimizer)
 
-        model.add(Dense(4 * 4 * 256, activation="relu", input_dim=SEED_SIZE))
-        model.add(Reshape((4, 4, 256)))
+    def _create_dirs(self, _class, path):
+        dir = f"models/{path}/{_class}"
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        self.models = dir
 
-        model.add(UpSampling2D())
-        model.add(Conv2D(256, kernel_size=3, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Activation("relu"))
+        dir = f"images/{path}/{_class}"
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        self.images = dir
 
-        model.add(UpSampling2D())
-        model.add(Conv2D(256, kernel_size=3, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Activation("relu"))
-
-        # Output resolution, additional upsampling
-        model.add(UpSampling2D())
-        model.add(Conv2D(128, kernel_size=3, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Activation("relu"))
-
-        if GENERATE_RES > 1:
-            model.add(UpSampling2D(size=(GENERATE_RES, GENERATE_RES)))
-            model.add(Conv2D(128, kernel_size=3, padding="same"))
-            model.add(BatchNormalization(momentum=0.8))
-            model.add(Activation("relu"))
-
-        # Final CNN layer
-        model.add(Conv2D(IMAGE_CHANNELS, kernel_size=3, padding="same"))
-        model.add(Activation("tanh"))
-
-        return model
-
-    def plot_model(self):
-        plot_model(self.model, "plots/generator.png")
-
-    def save(self, path):
-        self.model.save(path)
-
-
-class Discriminator(object):
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.model = self.__build()
-
-    def __build(self):
-        image_shape = (GENERATE_SQUARE, GENERATE_SQUARE, IMAGE_CHANNELS)
-        model = Sequential()
-
-        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=image_shape, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
-
-        model.add(Dropout(0.25))
-        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
-
-        model.add(Dropout(0.25))
-        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
-
-        model.add(Dropout(0.25))
-        model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
-
-        model.add(Dropout(0.25))
-        model.add(Conv2D(512, kernel_size=3, strides=1, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
-
-        model.add(Dropout(0.25))
-        model.add(Flatten())
-        model.add(Dense(1, activation='sigmoid'))
+    def build_combined(self):
+        self.discriminator.trainable = False
+        model = Sequential([self.generator, self.discriminator])
+        model.summary()
 
         return model
 
-    def plot_model(self):
-        plot_model(self.model, "plots/discriminator.png")
+    def train(self, epochs, X_train, batch_size=128, save_interval=10):
 
-    def save(self, path):
-        self.model.save(path)
+        half_batch = int(batch_size / 2)
+        num_batches = int(X_train.shape[0] / half_batch)
+        print("Number of Batches : ", num_batches)
+        history = []
+
+        prev_g_loss = 0
+        prev_d_loss = 0
+
+        for epoch in range(epochs):
+            for iteration in range(num_batches):
+                # generator create fake images
+                noise = np.random.normal(0, 1, (half_batch, cfg.SEED_SIZE))
+                fake_imgs = self.generator.predict(noise)
+
+                # sample real images
+                idx = np.random.randint(0, X_train.shape[0], half_batch)
+                real_imgs = X_train[idx]
+
+                # train discriminator, with real_imgs = 1 and fake_imgs = 0
+                d_loss_real = self.discriminator.train_on_batch(
+                    real_imgs, np.ones((half_batch, 1)))
+                d_loss_fake = self.discriminator.train_on_batch(
+                    fake_imgs, np.zeros((half_batch, 1)))
+                # average of fake and real loss
+                d_loss = np.add(d_loss_real, d_loss_fake) / 2
+
+                # train generator, with discriminator predicting 1
+                noise = np.random.normal(0, 1, (batch_size, cfg.SEED_SIZE))
+                valid_y = np.array([1] * batch_size)
+                g_loss = self.combined_model.train_on_batch(noise, valid_y)
+
+                # smoothing loss
+                prev_d_loss = d_loss[0] * 0.05 + prev_d_loss * 0.95
+                prev_g_loss = g_loss * 0.05 + prev_g_loss * 0.95
+                history.append([prev_d_loss, prev_g_loss, d_loss[1]])
+
+                print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (
+                    epoch, iteration, prev_d_loss, 100 * d_loss[1], prev_g_loss))
+
+            self.save_imgs(epoch)
+
+            if epoch % save_interval == 0:
+                self.save_model(epoch)
+
+        return history
+
+    def save_model(self, epoch):
+        self.combined_model.save_weights(
+            f'{self.models}/model_epoch_{epoch}.h5')
+
+    def load_model(self, epoch):
+        self.combined_model.load_weights(
+            f'{self.models}/model_epoch_{epoch}.h5')
+
+    def save_imgs(self, epoch):
+        r, c = 4, 4
+
+        noise = np.random.normal(0, 1, (r * c, cfg.SEED_SIZE))
+        gen_imgs = self.generator.predict(noise)
+
+        gen_imgs = 0.5 * gen_imgs + 0.5
+
+        upper_limit = np.vectorize(lambda x: 1 if x > 1 else x)
+        under_limit = np.vectorize(lambda x: 0 if x < 0 else x)
+
+        gen_imgs = upper_limit(gen_imgs)
+        gen_imgs = under_limit(gen_imgs)
+
+        fig, axs = plt.subplots(r, c)
+        cnt = 0
+        for i in range(r):
+            for j in range(c):
+                axs[i, j].imshow(gen_imgs[cnt, :, :, :])
+                axs[i, j].axis('off')
+                cnt += 1
+        fig.savefig(f"{self.images}/epoch_{epoch}.png")
+
+        plt.close()
+
+    def generate_images(self, path: str, count):
+        noise = np.random.normal(0, 1, (count, cfg.SEED_SIZE))
+        gen_imgs = self.generator.predict(noise)
+        gen_imgs = 0.5 * gen_imgs + 0.5
+
+        upper_limit = np.vectorize(lambda x: 1 if x > 1 else x)
+        under_limit = np.vectorize(lambda x: 0 if x < 0 else x)
+
+        gen_imgs = upper_limit(gen_imgs)
+        gen_imgs = under_limit(gen_imgs)
+        gen_imgs *= 255.0
+
+        # fig, axs = plt.subplots()
+        for index in range(count):
+            im = Image.fromarray(gen_imgs[index].astype(np.uint8))
+            im.save(f"{path}/{index}.jpg")
+            # axs.imshow(gen_imgs[index])
+            # axs.axis('off')
+            # fig.savefig(f"{path}/{index}.jpg")
+            # index += 1
 
 
-cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+# %% plot validation loss
+# history = [dis_loss, gen_loss, dis_acc]
+def plot_loss_combine(history_gan: [], epochs: int):
+    plt.figure(figsize=(8, 5))
+    plt.plot([x[0] for x in history_gan], '-', lw=2, markersize=9,
+             color='blue')
+    plt.plot([x[1] for x in history_gan], '-', lw=2, markersize=9,
+             color='orange')
+    plt.plot([x[2] for x in history_gan], '--', lw=2, markersize=9,
+             color='black')
+    plt.grid(True)
+    plt.legend(['Discriminator loss', 'Generator loss', 'Discriminator accuracy'])
+    plt.title("Validation loss with epochs\n", fontsize=18)
+    plt.xlabel("Training iterations", fontsize=15)
+    plt.ylabel("Training loss", fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
 
 
-def discriminator_loss(real_output, fake_output):
-    real_loss = cross_entropy(tf.ones_like(real_output), real_output)
-    fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
-    total_loss = real_loss + fake_loss
-    return total_loss
+def run(path: str, epochs: int, save_interval: int):
+    dir = f'models/{path}'
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+
+    dir = f'images/{path}'
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+
+    dir = f'plots/{path}'
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+
+    for _class in os.listdir(f'data/splits/{path}/train'):
+        print(f'Start class {_class}')
+        X_train = []
+        img_list = glob.glob(f'data/splits/{path}/train/{_class}/*')
+        for img_path in img_list:
+            img = img_to_array(load_img(img_path, target_size=(cfg.SIZE, cfg.SIZE), interpolation='lanczos'))
+            X_train.append(img)
+
+        X_train = np.asarray(X_train)
+        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+
+        gan = GAN(path, _class)
+        history = gan.train(epochs=epochs, X_train=X_train, batch_size=64, save_interval=save_interval)
+
+        plot_loss_combine(history, epochs)
+        plt.savefig(dir + f"/{_class}_loss.png")
 
 
-def generator_loss(fake_output):
-    return cross_entropy(tf.ones_like(fake_output), fake_output)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder')
+    parser.add_argument('-e', '--epochs', type=int, default=cfg.GAN_EPOCHS, help='amount of epochs to train')
+    parser.add_argument('-s', '--save_interval', type=int, default=cfg.SAVE_INTERVAL)
+    args = parser.parse_args()
 
-
-class GAN(object):
-
-    def __init__(self) -> None:
-        super().__init__()
-        # 1.5e-4
-        self.generator_optimizer = tf.keras.optimizers.Adam(1.5e-4, 0.5)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(1.5e-4, 0.5)
-        self.generator = Generator()
-        self.discriminator = Discriminator()
-
-    # This method returns a helper function to compute cross entropy loss
-    # Notice the use of `tf.function`
-    # This annotation causes the function to be "compiled".
-    @tf.function
-    def train_step(self, real_images):
-        seed = tf.random.normal([EVAL_BATCH_SIZE, SEED_SIZE])
-
-        with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-            generated_images = self.generator.model(seed, training=True)
-
-            real_output = self.discriminator.model(real_images, training=True)
-            fake_output = self.discriminator.model(generated_images, training=True)
-
-            gen_loss = generator_loss(fake_output)
-            disc_loss = discriminator_loss(real_output, fake_output)
-
-            gradients_of_generator = gen_tape.gradient(gen_loss, self.generator.model.trainable_variables)
-            gradients_of_discriminator = disc_tape.gradient(disc_loss, self.discriminator.model.trainable_variables)
-
-            self.generator_optimizer.apply_gradients(
-                zip(gradients_of_generator, self.generator.model.trainable_variables))
-            self.discriminator_optimizer.apply_gradients(
-                zip(gradients_of_discriminator, self.discriminator.model.trainable_variables))
-        return gen_loss, disc_loss
-
-    def save_images(self, cnt, noise):
-        image_array = np.full((
-            PREVIEW_MARGIN + (PREVIEW_ROWS * (GENERATE_SQUARE + PREVIEW_MARGIN)),
-            PREVIEW_MARGIN + (PREVIEW_COLS * (GENERATE_SQUARE + PREVIEW_MARGIN)), 3),
-            255, dtype=np.uint8)
-
-        generated_images = self.generator.model.predict(noise)
-
-        generated_images = 0.5 * generated_images + 0.5
-
-        image_count = 0
-        for row in range(PREVIEW_ROWS):
-            for col in range(PREVIEW_COLS):
-                r = row * (GENERATE_SQUARE + 16) + PREVIEW_MARGIN
-                c = col * (GENERATE_SQUARE + 16) + PREVIEW_MARGIN
-                image_array[r:r + GENERATE_SQUARE, c:c + GENERATE_SQUARE] = generated_images[image_count] * 255
-                image_count += 1
-
-        output_path = os.path.join(DATA_PATH, 'output')
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
-
-        filename = os.path.join(output_path, f"train-{cnt}.png")
-        im = Image.fromarray(image_array)
-        im.save(filename)
-
-    def train(self, dataset: DirectoryIterator):
-        dataset_size = dataset.samples
-        dataset.batch_size = dataset_size
-        X, y = dataset.next()
-        fixed_seed = np.random.normal(0, 1, (PREVIEW_ROWS * PREVIEW_COLS, SEED_SIZE))
-        start = time.time()
-
-        for epoch in range(EPOCHS):
-            epoch_start = time.time()
-
-            gen_loss_list = []
-            disc_loss_list = []
-
-            gen_loss, disc_loss = self.train_step(X)
-            gen_loss_list.append(gen_loss)
-            disc_loss_list.append(disc_loss)
-
-            g_loss = sum(gen_loss_list) / len(gen_loss_list)
-            d_loss = sum(disc_loss_list) / len(disc_loss_list)
-
-            epoch_elapsed = time.time() - epoch_start
-            print(f'Epoch {epoch + 1}, gen loss={g_loss},disc loss={d_loss}, {epoch_elapsed}')
-            self.save_images(epoch, fixed_seed)
-
-        elapsed = time.time() - start
-        print(f'Training time: {elapsed}')
-        print('Saved models')
-
-    def save_models(self, dataset):
-        self.generator.save(f'models/{dataset}-generator.h5')
-        self.discriminator.save(f'models/{dataset}-discriminator.h5')
+    run(args.dir, args.epochs, args.save_interval)
