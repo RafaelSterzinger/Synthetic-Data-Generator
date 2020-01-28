@@ -26,8 +26,10 @@ class GAN():
         self.discriminator = build_discriminator()
         self.discriminator.compile(
             loss="binary_crossentropy", optimizer=d_optimizer, metrics=["accuracy"])
+
         # generator
         self.generator = build_generator()
+
         # model
         self.combined_model = self.build_combined()
         self.combined_model.compile(
@@ -57,35 +59,42 @@ class GAN():
         num_batches = int(X_train.shape[0] / half_batch)
         print("Number of Batches : ", num_batches)
         history = []
-        d_loss = []
+
+        prev_g_loss = 0
+        prev_d_loss = 0
+        prev_acc = 0
+
         for epoch in range(epochs):
             for iteration in range(num_batches):
-                # train discriminator
-                if iteration % 1 == 0:
-                    # generator create fake images
-                    noise = np.random.normal(0, 1, (half_batch, cfg.SEED_SIZE))
-                    gen_imgs = self.generator.predict(noise)
+                # generator create fake images
+                noise = np.random.normal(0, 1, (half_batch, cfg.SEED_SIZE))
+                fake_imgs = self.generator.predict(noise)
 
-                    idx = np.random.randint(0, X_train.shape[0], half_batch)
-                    imgs = X_train[idx]
+                # sample real images
+                idx = np.random.randint(0, X_train.shape[0], half_batch)
+                real_imgs = X_train[idx]
 
-                    # training
-                    d_loss_real = self.discriminator.train_on_batch(
-                        imgs, np.ones((half_batch, 1)))
-                    d_loss_fake = self.discriminator.train_on_batch(
-                        gen_imgs, np.zeros((half_batch, 1)))
+                # train discriminator, with real_imgs = 1 and fake_imgs = 0
+                d_loss_real = self.discriminator.train_on_batch(
+                    real_imgs, np.ones((half_batch, 1)))
+                d_loss_fake = self.discriminator.train_on_batch(
+                    fake_imgs, np.zeros((half_batch, 1)))
+                # average of fake and real loss
+                d_loss = np.add(d_loss_real, d_loss_fake) / 2
 
-                    # average of fake and real loss
-                    d_loss = np.add(d_loss_real, d_loss_fake) / 2
-
-                # train generator
+                # train generator, with discriminator predicting 1
                 noise = np.random.normal(0, 1, (batch_size, cfg.SEED_SIZE))
                 valid_y = np.array([1] * batch_size)
-
                 g_loss = self.combined_model.train_on_batch(noise, valid_y)
-                history.append([d_loss[0], g_loss, d_loss[1]])
+
+                # smoothing loss
+                prev_d_loss = d_loss[0] * 0.05 + prev_d_loss * 0.95
+                prev_g_loss = g_loss * 0.05 + prev_g_loss * 0.95
+                prev_acc = d_loss[1] * 0.05 + prev_acc * 0.095
+                history.append([prev_d_loss, prev_g_loss, prev_acc])
+
                 print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (
-                    epoch, iteration, d_loss[0], 100 * d_loss[1], g_loss))
+                    epoch, iteration, prev_d_loss, 100 * prev_acc, prev_g_loss))
 
             self.save_imgs(epoch)
 
@@ -162,7 +171,7 @@ def plot_loss_combine(history_gan: [], epochs: int):
     plt.grid(True)
     plt.legend(['Discriminator loss', 'Generator loss', 'Discriminator accuracy'])
     plt.title("Validation loss with epochs\n", fontsize=18)
-    plt.xlabel("Training epochs", fontsize=15)
+    plt.xlabel("Training iterations", fontsize=15)
     plt.ylabel("Training loss", fontsize=15)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
