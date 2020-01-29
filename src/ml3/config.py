@@ -1,5 +1,5 @@
 # General
-SIZE = 64  # Do not change this value (64)
+SIZE = 64  # Do NOT change this value
 IMAGE_SHAPE = (SIZE, SIZE, 3)
 
 # Pre processing
@@ -14,8 +14,8 @@ ZOOM_RANGE = [0.5, 1.0]
 ROTATION_RANGE = 25
 
 # GAN training
-GAN_EPOCHS = 500
-GAN_BATCH_SIZE = 12  # Batch size must be smaller than amount of samples
+GAN_EPOCHS = 10
+GAN_BATCH_SIZE = 128  # Batch size must be smaller than amount of samples
 SAVE_INTERVAL = 1
 SAVE_IMAGES = True
 LEARNING_RATE_DISCRIMINATOR = 0.0002
