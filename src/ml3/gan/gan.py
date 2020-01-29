@@ -160,7 +160,7 @@ def run(dataset: str):
 
     # create a generator for each class of dataset
     for _class in os.listdir(f'data/splits/{dataset}/train'):
-        print(f'Start class {_class}')
+        print(f'Starting with training of class {_class}')
         real_imgs = []
         img_list = glob.glob(f'data/splits/{dataset}/train/{_class}/*')
         for img_path in img_list:

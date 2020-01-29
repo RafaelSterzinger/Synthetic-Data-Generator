@@ -21,38 +21,13 @@ def plot_comparision(real: History, augm: History, fake: History, mode: str, tit
     plt.yticks(fontsize=15)
 
 
-if __name__ == '__main__':
-    # choose dataset ("Edit Configurations" -> Parameters: -d <dataset-name>
-    #                                       -> Working Directory: <project root>)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dataset', type=str, required=True, help='name of the dataset')
-    args = parser.parse_args()
-    dataset = args.dataset
-
-    count = 1
-    print(f'{count}: Starting pre-processing')
-    preprocess.run(dataset)
-
-    count += 1
-    print(f'{count}: Starting training GAN\'s')
-    gan.run(dataset)
-
-    count += 1
-    print(f'{count}: Starting with image generation')
-    image_generator.run(args.dataset)
-
-    count += 1
-    print(f'{count}: Starting evaluation of original')
+def evaluation():
+    print('Starting evaluation of original')
     real = eval.run(dataset, mode="real")
-
-    count += 1
-    print(f'{count}: Starting evaluation of augmentation')
+    print('Starting evaluation of augmentation')
     augm = eval.run(dataset, mode="augm")
-
-    count += 1
-    print(f'{count}: Starting evaluation of fake')
+    print('Starting evaluation of fake')
     fake = eval.run(dataset, mode="fake")
-
     plot_comparision(real, augm, fake, 'acc', 'Comparision of the training accuracy', 'Training accuracy')
     plt.savefig(f"plots/{dataset}/comparision_acc.png")
     plot_comparision(real, augm, fake, 'loss', 'Comparision of the training loss', 'Training loss')
@@ -61,3 +36,38 @@ if __name__ == '__main__':
     plt.savefig(f"plots/{dataset}/comparision_val_acc.png")
     plot_comparision(real, augm, fake, 'val_loss', 'Comparision of the validation loss', 'Validation loss')
     plt.savefig(f"plots/{dataset}/comparision_val_loss.png")
+
+
+def train():
+    print('Starting training GAN\'s')
+    gan.run(dataset)
+
+
+def run_all():
+    print('Starting pre-processing')
+    preprocess.run(dataset)
+    train()
+    print('Starting with image generation')
+    image_generator.run(args.dataset)
+    evaluation()
+
+
+if __name__ == '__main__':
+    # choose dataset ("Edit Configurations" -> Parameters: -d <dataset-name>
+    #                                       -> Working Directory: <project root>)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dataset', type=str, required=True, help='name of the dataset')
+    parser.add_argument('-m', '--mode', type=str, choices=['train', 'eval'], default=None,
+                        help='choose "train" to train a GAN or "eval" to evaluate')
+    args = parser.parse_args()
+    dataset = args.dataset
+    mode = args.mode
+
+    if mode is None:
+        run_all()
+
+    elif mode == 'train':
+        train()
+
+    elif mode == 'eval':
+        evaluation()
