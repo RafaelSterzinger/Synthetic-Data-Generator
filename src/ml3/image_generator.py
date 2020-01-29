@@ -25,7 +25,7 @@ def generate_images(generator: Model, path: str, count):
         im.save(f"{path}/{index}.jpg")
 
 
-def run(dataset: str, epoch: int):
+def run(dataset: str, epoch=cfg.EPOCH_OF_MODEL):
     dir = f'data/fake/{dataset}'
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -38,13 +38,13 @@ def run(dataset: str, epoch: int):
             os.mkdir(_class_path)
 
         generator = load_generator(f'models/{dataset}/{_class}', epoch)
-        generate_images(generator, _class_path, 100)
+        generate_images(generator, _class_path, cfg.IMAGE_AMOUNT)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dir', type=str, required=True, help='name of dataset')
+    parser.add_argument('-d', '--dataset', type=str, required=True, help='name of the dataset')
     parser.add_argument('-e', '--epochs', type=int, required=True, help='specification of the model')
     args = parser.parse_args()
 
-    run(args.dir, args.epochs)
+    run(args.dataset, args.epochs)

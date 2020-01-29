@@ -7,24 +7,23 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator, DirectoryIt
 import ml3.config as cfg
 
 
-def split_data(folder: str):
+def __split_data(folder: str):
     split_folders.ratio('data/original/' + folder, 'data/splits/' + folder, seed=1337,
                         ratio=(cfg.TRAIN, cfg.VALIDATION))
 
 
-def train_data_generator(folder: str, augmentation=False, classes=None) -> DirectoryIterator:
+def train_data_generator(folder: str, augmentation=False) -> DirectoryIterator:
     if augmentation:
         train_data_generator = ImageDataGenerator(rescale=cfg.SCALE, horizontal_flip=True, brightness_range=[0.2, 1.0],
                                                   zoom_range=[0.5, 1.0], rotation_range=25)
     else:
         train_data_generator = ImageDataGenerator(rescale=cfg.SCALE)
     generator = train_data_generator.flow_from_directory(
-        'data/splits/' + folder + '/train',
+        folder,
         target_size=(cfg.SIZE, cfg.SIZE),
         batch_size=cfg.EVAL_BATCH_SIZE,
         class_mode='categorical',
-        interpolation='lanczos',
-        classes=classes)
+        interpolation='lanczos')
     return generator
 
 
@@ -38,15 +37,8 @@ def validation_data_generator(folder: str) -> DirectoryIterator:
     return generator
 
 
-def run(dir: str):
-    try:
-        # Create target directory
-        os.mkdir('data/splits')
-        print("Created directory")
-    except FileExistsError:
-        print("Directory already exists")
-    split_data(dir)
-
+def run(dataset: str):
+    __split_data(dataset)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

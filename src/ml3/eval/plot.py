@@ -4,7 +4,7 @@ from keras.callbacks import History
 # %% plot accuracy
 def plot_training(history: History):
     plt.figure(figsize=(8, 5))
-    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['acc'], '-o', c='k', lw=2, markersize=9)
+    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['acc'], '-', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Training accuracy with epochs\n", fontsize=18)
     plt.xlabel("Training epochs", fontsize=15)
@@ -16,7 +16,7 @@ def plot_training(history: History):
 # %% plot loss
 def plot_loss(history: History):
     plt.figure(figsize=(8, 5))
-    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['loss'], '-o', c='k', lw=2, markersize=9)
+    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['loss'], '-', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Training loss with epochs\n", fontsize=18)
     plt.xlabel("Training epochs", fontsize=15)
@@ -28,7 +28,7 @@ def plot_loss(history: History):
 # %% plot validation accuracy
 def plot_validation(history: History):
     plt.figure(figsize=(8, 5))
-    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['val_acc'], '-o', c='k', lw=2, markersize=9)
+    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['val_acc'], '-', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Validation accuracy with epochs\n", fontsize=18)
     plt.xlabel("Training epochs", fontsize=15)
@@ -40,7 +40,7 @@ def plot_validation(history: History):
 # %% plot validation loss
 def plot_validation_loss(history: History):
     plt.figure(figsize=(8, 5))
-    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['val_loss'], '-o', c='k', lw=2, markersize=9)
+    plt.plot([i + 1 for i in range(len(history.epoch))], history.history['val_loss'], '-', c='k', lw=2, markersize=9)
     plt.grid(True)
     plt.title("Validation loss with epochs\n", fontsize=18)
     plt.xlabel("Training epochs", fontsize=15)

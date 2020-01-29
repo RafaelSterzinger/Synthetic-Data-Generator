@@ -15,10 +15,10 @@ from ml3.gan.generator import build_generator
 
 class GAN():
     def __init__(self, path: str, _class: str):
-        self._create_dirs(_class, path)
-        self._create_model()
+        self.__create_dirs(_class, path)
+        self.__create_model()
 
-    def _create_model(self):
+    def __create_model(self):
         d_optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999)
         g_optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999)
         # discriminator
@@ -30,11 +30,11 @@ class GAN():
         self.generator = build_generator()
 
         # model
-        self.combined_model = self.build_combined()
+        self.combined_model = self.__build_combined()
         self.combined_model.compile(
             loss="binary_crossentropy", optimizer=g_optimizer)
 
-    def _create_dirs(self, _class, path):
+    def __create_dirs(self, _class, path):
         dir = f"models/{path}/{_class}"
         if not os.path.exists(dir):
             os.mkdir(dir)
@@ -45,13 +45,13 @@ class GAN():
             os.mkdir(dir)
         self.images = dir
 
-    def build_combined(self):
+    def __build_combined(self):
         self.discriminator.trainable = False
         model = Sequential([self.generator, self.discriminator])
 
         return model
 
-    def train(self, epochs, X_train, batch_size=128, save_interval=10):
+    def train(self, epochs, X_train, batch_size, save_interval):
 
         half_batch = int(batch_size / 2)
         num_batches = int(X_train.shape[0] / half_batch)
@@ -92,17 +92,17 @@ class GAN():
                 print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (
                     epoch, iteration, prev_d_loss, 100 * d_loss[1], prev_g_loss))
 
-            self.save_imgs(epoch)
+            self.__save_imgs(epoch)
 
             if epoch % save_interval == 0:
-                self.save_model(epoch)
+                self.__save_model(epoch)
 
         return history
 
-    def save_model(self, epoch):
+    def __save_model(self, epoch):
         self.generator.save(f'{self.models}/model_epoch_{epoch}.h5')
 
-    def save_imgs(self, epoch):
+    def __save_imgs(self, epoch):
         r, c = 4, 4
 
         noise = np.random.normal(0, 1, (r * c, cfg.SEED_SIZE))
@@ -129,7 +129,7 @@ class GAN():
 
 
 # plot validation loss, history = [dis_loss, gen_loss, dis_acc]
-def plot_loss_combine(history_gan: []):
+def __plot_loss_combine(history_gan: []):
     plt.figure(figsize=(8, 5))
     plt.plot([x[0] for x in history_gan], '-', lw=2, markersize=9,
              color='blue')
@@ -146,23 +146,23 @@ def plot_loss_combine(history_gan: []):
     plt.yticks(fontsize=15)
 
 
-def run(path: str, epochs: int, save_interval: int):
-    dir = f'models/{path}'
+def run(dataset: str, epochs=cfg.GAN_EPOCHS, save_interval=cfg.SAVE_INTERVAL):
+    dir = f'models/{dataset}'
     if not os.path.exists(dir):
         os.mkdir(dir)
 
-    dir = f'images/{path}'
+    dir = f'images/{dataset}'
     if not os.path.exists(dir):
         os.mkdir(dir)
 
-    dir = f'plots/{path}'
+    dir = f'plots/{dataset}'
     if not os.path.exists(dir):
         os.mkdir(dir)
 
-    for _class in os.listdir(f'data/splits/{path}/train'):
+    for _class in os.listdir(f'data/splits/{dataset}/train'):
         print(f'Start class {_class}')
         X_train = []
-        img_list = glob.glob(f'data/splits/{path}/train/{_class}/*')
+        img_list = glob.glob(f'data/splits/{dataset}/train/{_class}/*')
         for img_path in img_list:
             img = img_to_array(load_img(img_path, target_size=(cfg.SIZE, cfg.SIZE), interpolation='lanczos'))
             X_train.append(img)
@@ -170,18 +170,18 @@ def run(path: str, epochs: int, save_interval: int):
         X_train = np.asarray(X_train)
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
-        gan = GAN(path, _class)
-        history = gan.train(epochs=epochs, X_train=X_train, batch_size=64, save_interval=save_interval)
+        gan = GAN(dataset, _class)
+        history = gan.train(epochs=epochs, X_train=X_train, batch_size=cfg.GAN_BATCH_SIZE, save_interval=save_interval)
 
-        plot_loss_combine(history)
+        __plot_loss_combine(history)
         plt.savefig(dir + f"/{_class}_loss.png")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder')
-    parser.add_argument('-e', '--epochs', type=int, default=cfg.GAN_EPOCHS, help='amount of epochs to train')
-    parser.add_argument('-s', '--save_interval', type=int, default=cfg.SAVE_INTERVAL)
+    parser.add_argument('-d', '--dataset', type=str, required=True, help='name of dataset')
+    parser.add_argument('-e', '--epochs', type=int, help='amount of epochs to train')
+    parser.add_argument('-s', '--save_interval', type=int)
     args = parser.parse_args()
 
-    run(args.dir, args.epochs, args.save_interval)
+    run(args.dataset, args.epochs, args.save_interval)
