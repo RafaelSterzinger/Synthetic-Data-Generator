@@ -3,10 +3,9 @@ import glob
 import os
 
 import numpy as np
-from PIL import Image
-from keras.models import Sequential
-from keras.optimizers import Adam
-from keras.preprocessing.image import img_to_array, load_img
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import img_to_array, load_img
 
 import ml3.config as cfg
 import matplotlib.pyplot as plt
@@ -49,7 +48,6 @@ class GAN():
     def build_combined(self):
         self.discriminator.trainable = False
         model = Sequential([self.generator, self.discriminator])
-        model.summary()
 
         return model
 
@@ -102,12 +100,7 @@ class GAN():
         return history
 
     def save_model(self, epoch):
-        self.combined_model.save_weights(
-            f'{self.models}/model_epoch_{epoch}.h5')
-
-    def load_model(self, epoch):
-        self.combined_model.load_weights(
-            f'{self.models}/model_epoch_{epoch}.h5')
+        self.generator.save(f'{self.models}/model_epoch_{epoch}.h5')
 
     def save_imgs(self, epoch):
         r, c = 4, 4
@@ -134,31 +127,9 @@ class GAN():
 
         plt.close()
 
-    def generate_images(self, path: str, count):
-        noise = np.random.normal(0, 1, (count, cfg.SEED_SIZE))
-        gen_imgs = self.generator.predict(noise)
-        gen_imgs = 0.5 * gen_imgs + 0.5
 
-        upper_limit = np.vectorize(lambda x: 1 if x > 1 else x)
-        under_limit = np.vectorize(lambda x: 0 if x < 0 else x)
-
-        gen_imgs = upper_limit(gen_imgs)
-        gen_imgs = under_limit(gen_imgs)
-        gen_imgs *= 255.0
-
-        # fig, axs = plt.subplots()
-        for index in range(count):
-            im = Image.fromarray(gen_imgs[index].astype(np.uint8))
-            im.save(f"{path}/{index}.jpg")
-            # axs.imshow(gen_imgs[index])
-            # axs.axis('off')
-            # fig.savefig(f"{path}/{index}.jpg")
-            # index += 1
-
-
-# %% plot validation loss
-# history = [dis_loss, gen_loss, dis_acc]
-def plot_loss_combine(history_gan: [], epochs: int):
+# plot validation loss, history = [dis_loss, gen_loss, dis_acc]
+def plot_loss_combine(history_gan: []):
     plt.figure(figsize=(8, 5))
     plt.plot([x[0] for x in history_gan], '-', lw=2, markersize=9,
              color='blue')
@@ -202,7 +173,7 @@ def run(path: str, epochs: int, save_interval: int):
         gan = GAN(path, _class)
         history = gan.train(epochs=epochs, X_train=X_train, batch_size=64, save_interval=save_interval)
 
-        plot_loss_combine(history, epochs)
+        plot_loss_combine(history)
         plt.savefig(dir + f"/{_class}_loss.png")
 
 

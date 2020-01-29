@@ -33,21 +33,6 @@ def train_gan(path, class_name):
     return gan.generator
 
 
-def generate_images(dir: str, model_epoch: int):
-    fake_path = f'data/fake/{dir}'
-    print(f'Generating fake images in {fake_path}')
-    if not os.path.exists(fake_path):
-        os.mkdir(fake_path)
-    path = f'data/splits/{dir}/train'
-    for _class in os.listdir(path):
-        fake_path_class = f'{fake_path}/{_class}'
-        if not os.path.exists(fake_path_class):
-            os.mkdir(fake_path_class)
-        gan = GAN(dir, _class)
-        gan.load_model(model_epoch)
-        gan.generate_images(fake_path_class, 100)
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dir', type=str, required=True, help='name of folder to train the model on',
@@ -57,7 +42,6 @@ if __name__ == '__main__':
                         default='real')
     args = parser.parse_args()
     if args.mode == 'fake':
-        if not os.path.exists('data/fake'):
-            os.mkdir('data/fake')
+
         generate_images(args.dir, 500)
     # eval.run(args.dir, args.epochs, args.mode)
