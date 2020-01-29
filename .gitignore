@@ -9,6 +9,7 @@
 /venv/
 *.png
 *.h5
+*.pdf
 
 # User-specific stuff
 .idea/**/workspace.xml
