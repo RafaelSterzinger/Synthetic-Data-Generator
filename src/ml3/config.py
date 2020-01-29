@@ -14,7 +14,7 @@ ZOOM_RANGE = [0.5, 1.0]
 ROTATION_RANGE = 25
 
 # GAN training
-GAN_EPOCHS = 10
+GAN_EPOCHS = 500
 GAN_BATCH_SIZE = 12  # Batch size must be smaller than amount of samples
 SAVE_INTERVAL = 1
 SAVE_IMAGES = True

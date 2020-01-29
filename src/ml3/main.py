@@ -44,12 +44,20 @@ def train():
 
 
 def run_all():
+    process()
+    train()
+    generate()
+    evaluation()
+
+
+def process():
     print('Starting pre-processing')
     preprocess.run(dataset)
-    train()
+
+
+def generate():
     print('Starting with image generation')
     image_generator.run(args.dataset)
-    evaluation()
 
 
 if __name__ == '__main__':
@@ -57,8 +65,8 @@ if __name__ == '__main__':
     #                                       -> Working Directory: <project root>)
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset', type=str, required=True, help='name of the dataset')
-    parser.add_argument('-m', '--mode', type=str, choices=['train', 'eval'], default=None,
-                        help='choose "train" to train a GAN or "eval" to evaluate')
+    parser.add_argument('-m', '--mode', type=str, choices=['train', 'eval', 'gen', 'pre'], default=None,
+                        help='choose between training, evaluation, generation of images and pre-processing of data')
     args = parser.parse_args()
     dataset = args.dataset
     mode = args.mode
@@ -71,3 +79,9 @@ if __name__ == '__main__':
 
     elif mode == 'eval':
         evaluation()
+
+    elif mode == 'gen':
+        generate()
+
+    elif mode == 'pre':
+        process()
