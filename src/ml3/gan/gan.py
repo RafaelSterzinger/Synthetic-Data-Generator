@@ -19,8 +19,8 @@ class GAN():
         self.__create_model()
 
     def __create_model(self):
-        d_optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999)
-        g_optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999)
+        d_optimizer = Adam(lr=cfg.LEARNING_RATE_DISCRIMINATOR, beta_1=0.5, beta_2=0.999)
+        g_optimizer = Adam(lr=cfg.LEARNING_RATE_GENERATOR, beta_1=0.5, beta_2=0.999)
         # discriminator
         self.discriminator = build_discriminator()
         self.discriminator.compile(
@@ -167,6 +167,7 @@ def run(dataset: str, epochs=cfg.GAN_EPOCHS, save_interval=cfg.SAVE_INTERVAL):
             img = img_to_array(load_img(img_path, target_size=(cfg.SIZE, cfg.SIZE), interpolation='lanczos'))
             X_train.append(img)
 
+        # normalize image
         X_train = np.asarray(X_train)
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
