@@ -1,6 +1,7 @@
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dropout,Dense
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dropout, Dense
 import ml3.config as cfg
+
 
 def build_cnn(class_amount: int):
     model = Sequential([

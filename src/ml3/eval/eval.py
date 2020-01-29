@@ -1,4 +1,3 @@
-import argparse
 import os
 
 import ml3.config as cfg
@@ -32,12 +31,12 @@ def train(dataset: str, epochs: int, mode: str) -> History:
     return history
 
 
-def run(dataset: str, mode: str, epochs=cfg.EVAL_EPOCHS) -> History:
-    history = train(dataset, epochs, mode)
-
+def run(dataset: str, mode: str) -> History:
     plot_path = f'plots/{dataset}'
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
+
+    history = train(dataset, cfg.EVAL_EPOCHS, mode)
 
     plot_loss(history)
     plt.savefig(plot_path + f'/{mode}_loss.png')
@@ -49,13 +48,3 @@ def run(dataset: str, mode: str, epochs=cfg.EVAL_EPOCHS) -> History:
     plt.savefig(plot_path + f'/{mode}_val_loss.png')
 
     return history
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dataset', type=str, required=True, help='name of the dataset')
-    parser.add_argument('-e', '--epochs', type=int, default=cfg.EVAL_EPOCHS, help='number of epochs')
-    parser.add_argument('-m', '--mode', choices=['real', 'augm', 'fake'], required=True, help='mode for training',
-                        default='real')
-    args = parser.parse_args()
-    run(args.dataset, args.mode, args.epochs)

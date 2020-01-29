@@ -37,19 +37,19 @@ if __name__ == '__main__':
     print(f'{count}: Starting training GAN\'s')
     gan.run(dataset)
 
-    count+=1
+    count += 1
     print(f'{count}: Starting with image generation')
     image_generator.run(args.dataset)
 
-    count+=1
+    count += 1
     print(f'{count}: Starting evaluation of original')
     real = eval.run(dataset, mode="real")
 
-    count+=1
+    count += 1
     print(f'{count}: Starting evaluation of augmentation')
     augm = eval.run(dataset, mode="augm")
 
-    count+=1
+    count += 1
     print(f'{count}: Starting evaluation of fake')
     fake = eval.run(dataset, mode="fake")
 

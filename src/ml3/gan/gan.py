@@ -1,14 +1,12 @@
-import argparse
 import glob
 import os
-
 import numpy as np
+import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
 
 import ml3.config as cfg
-import matplotlib.pyplot as plt
 from ml3.gan.discriminator import build_discriminator
 from ml3.gan.generator import build_generator
 
@@ -46,18 +44,18 @@ class GAN():
         self.images = dir
 
     def __build_combined(self):
+        # set trainable=False to only train the generator depending on the accuracy of the discriminator
         self.discriminator.trainable = False
         model = Sequential([self.generator, self.discriminator])
 
         return model
 
-    def train(self, epochs, X_train, batch_size, save_interval):
-
+    def train(self, epochs, trainings_data, batch_size, save_interval):
         half_batch = int(batch_size / 2)
-        num_batches = int(X_train.shape[0] / half_batch)
+        num_batches = int(trainings_data.shape[0] / half_batch)
         print("Number of Batches : ", num_batches)
-        history = []
 
+        history = []
         prev_g_loss = 0
         prev_d_loss = 0
 
@@ -68,8 +66,8 @@ class GAN():
                 fake_imgs = self.generator.predict(noise)
 
                 # sample real images
-                idx = np.random.randint(0, X_train.shape[0], half_batch)
-                real_imgs = X_train[idx]
+                idx = np.random.randint(0, trainings_data.shape[0], half_batch)
+                real_imgs = trainings_data[idx]
 
                 # train discriminator, with real_imgs = 1 and fake_imgs = 0
                 d_loss_real = self.discriminator.train_on_batch(
@@ -84,7 +82,7 @@ class GAN():
                 valid_y = np.array([1] * batch_size)
                 g_loss = self.combined_model.train_on_batch(noise, valid_y)
 
-                # smoothing loss
+                # smoothing loss and appending to the history
                 prev_d_loss = d_loss[0] * 0.05 + prev_d_loss * 0.95
                 prev_g_loss = g_loss * 0.05 + prev_g_loss * 0.95
                 history.append([prev_d_loss, prev_g_loss, d_loss[1]])
@@ -92,7 +90,8 @@ class GAN():
                 print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (
                     epoch, iteration, prev_d_loss, 100 * d_loss[1], prev_g_loss))
 
-            self.__save_imgs(epoch)
+            if cfg.SAVE_IMAGES:
+                self.__save_imgs(epoch)
 
             if epoch % save_interval == 0:
                 self.__save_model(epoch)
@@ -146,7 +145,7 @@ def __plot_loss_combine(history_gan: []):
     plt.yticks(fontsize=15)
 
 
-def run(dataset: str, epochs=cfg.GAN_EPOCHS, save_interval=cfg.SAVE_INTERVAL):
+def run(dataset: str):
     dir = f'models/{dataset}'
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -159,30 +158,22 @@ def run(dataset: str, epochs=cfg.GAN_EPOCHS, save_interval=cfg.SAVE_INTERVAL):
     if not os.path.exists(dir):
         os.mkdir(dir)
 
+    # create a generator for each class of dataset
     for _class in os.listdir(f'data/splits/{dataset}/train'):
         print(f'Start class {_class}')
-        X_train = []
+        real_imgs = []
         img_list = glob.glob(f'data/splits/{dataset}/train/{_class}/*')
         for img_path in img_list:
             img = img_to_array(load_img(img_path, target_size=(cfg.SIZE, cfg.SIZE), interpolation='lanczos'))
-            X_train.append(img)
+            real_imgs.append(img)
 
         # normalize image
-        X_train = np.asarray(X_train)
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        real_imgs = np.asarray(real_imgs)
+        real_imgs = (real_imgs.astype(np.float32) - 127.5) / 127.5
 
         gan = GAN(dataset, _class)
-        history = gan.train(epochs=epochs, X_train=X_train, batch_size=cfg.GAN_BATCH_SIZE, save_interval=save_interval)
+        history = gan.train(epochs=cfg.GAN_EPOCHS, trainings_data=real_imgs, batch_size=cfg.GAN_BATCH_SIZE,
+                            save_interval=cfg.SAVE_INTERVAL)
 
         __plot_loss_combine(history)
         plt.savefig(dir + f"/{_class}_loss.png")
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dataset', type=str, required=True, help='name of dataset')
-    parser.add_argument('-e', '--epochs', type=int, help='amount of epochs to train')
-    parser.add_argument('-s', '--save_interval', type=int)
-    args = parser.parse_args()
-
-    run(args.dataset, args.epochs, args.save_interval)

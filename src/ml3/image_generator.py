@@ -1,12 +1,10 @@
-import argparse
 import os
 import numpy as np
-import ml3.config as cfg
-
 from PIL import Image
-from ml3.gan.generator import load_generator
 from tensorflow.keras.models import Model
 
+import ml3.config as cfg
+from ml3.gan.generator import load_generator
 
 def generate_images(generator: Model, path: str, count):
     noise = np.random.normal(0, 1, (count, cfg.SEED_SIZE))
@@ -25,26 +23,17 @@ def generate_images(generator: Model, path: str, count):
         im.save(f"{path}/{index}.jpg")
 
 
-def run(dataset: str, epoch=cfg.EPOCH_OF_MODEL):
-    dir = f'data/fake/{dataset}'
-    if not os.path.exists(dir):
-        os.mkdir(dir)
+def run(dataset: str):
+    directory = f'data/fake/{dataset}'
+    if not os.path.exists(directory):
+        os.mkdir(directory)
 
     path = f'data/splits/{dataset}/train'
     for _class in os.listdir(path):
 
-        _class_path = f'{dir}/{_class}'
+        _class_path = f'{directory}/{_class}'
         if not os.path.exists(_class_path):
             os.mkdir(_class_path)
 
-        generator = load_generator(f'models/{dataset}/{_class}', epoch)
+        generator = load_generator(f'models/{dataset}/{_class}', cfg.EPOCH_OF_MODEL)
         generate_images(generator, _class_path, cfg.IMAGE_AMOUNT)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dataset', type=str, required=True, help='name of the dataset')
-    parser.add_argument('-e', '--epochs', type=int, required=True, help='specification of the model')
-    args = parser.parse_args()
-
-    run(args.dataset, args.epochs)
