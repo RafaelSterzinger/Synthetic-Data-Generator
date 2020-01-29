@@ -2,9 +2,9 @@ import glob
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.preprocessing.image import img_to_array, load_img
+from keras.models import Sequential
+from keras.optimizers import Adam
+from keras.preprocessing.image import img_to_array, load_img
 
 import ml3.config as cfg
 from ml3.gan.discriminator import build_discriminator

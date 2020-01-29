@@ -1,5 +1,5 @@
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Conv2D, ZeroPadding2D, BatchNormalization, Flatten, LeakyReLU
+from keras import Sequential
+from keras.layers import Dense, Dropout, Conv2D, ZeroPadding2D, BatchNormalization, Flatten, LeakyReLU
 
 import ml3.config as cfg
 

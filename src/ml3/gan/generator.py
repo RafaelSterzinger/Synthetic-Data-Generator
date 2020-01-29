@@ -1,11 +1,10 @@
-from tensorflow.keras.layers import Dense, UpSampling2D, Conv2D, Reshape, BatchNormalization, LeakyReLU
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.models import load_model
+from keras.layers import Dense, UpSampling2D, Conv2D, Reshape, BatchNormalization, LeakyReLU
+from keras.models import Sequential
+from keras.models import load_model
 
 import ml3.config as cfg
 
 
-# TODO: Make generator dynamic e.g. images 128x128
 def build_generator():
     noise_shape = (cfg.SEED_SIZE,)
 
