@@ -22,6 +22,8 @@ def plot_comparision(real: History, augm: History, fake: History, mode: str, tit
 
 
 if __name__ == '__main__':
+    # choose dataset ("Edit Configurations" -> Parameters: -d <dataset-name>
+    #                                       -> Working Directory: <project root>)
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset', type=str, required=True, help='name of the dataset')
     args = parser.parse_args()
