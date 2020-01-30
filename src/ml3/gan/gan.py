@@ -77,6 +77,7 @@ class GAN():
                 # average of fake and real loss
                 d_loss = np.add(d_loss_real, d_loss_fake) / 2
 
+            for iteration in range(num_batches):
                 # train generator, with discriminator predicting 1
                 noise = np.random.normal(0, 1, (batch_size, cfg.SEED_SIZE))
                 valid_y = np.array([1] * batch_size)
