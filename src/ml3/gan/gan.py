@@ -90,11 +90,10 @@ class GAN():
                 print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (
                     epoch, iteration, prev_d_loss, 100 * d_loss[1], prev_g_loss))
 
-            if cfg.SAVE_IMAGES:
-                self.__save_imgs(epoch)
-
             if epoch % save_interval == 0:
                 self.__save_model(epoch)
+                if cfg.SAVE_IMAGES:
+                    self.__save_imgs(epoch)
 
         return history
 
