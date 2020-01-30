@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 
 \title{Exercise 3: Topic 3.4\\ Generation and Evaluation of Unstructured Synthetic Datasets}
-\author{Rafael Sterzinger, Christian Stippler, Fatjon Zogaj}
+\author{Rafael Sterzinger, Christian Stippel, Fatjon Zogaj}
 \date{January 31, 2020}
 
 \usepackage{graphicx}
@@ -31,22 +31,47 @@ including augmentated data, created by flipping, zooming, rotating and changing 
 This was done to get a general overview about how useful our data generation is and how it compares to more simple approaches.
 
 \subsection{Generative Adversarial Networks}
+% general explanation
 For our image generation we have trained two deep networks called Generator and Discriminator, which compete against and cooperate with, each other,
 helping each other learn. In our case the Generator tries to create fake images and the Discriminator then gives feedback to the Generator,
 telling it why it is fake. This process continues until the Generator is able to generate images, which fool the Discriminator.
+\newline
 
 Generator: From a 100-dimensional noise we create images using the opposite of convolution (transposed convolution).
 Adversarial Model or Generator-Discriminator
-
-
+\newline
 Discriminator: Deep CNN which gives a probability [0,1] of how real the input looks. Instead of using max-pooling like in a typical
 CNN, we use strided convolution for downsampling.
 
-% general explanation
 % general pictures
+
+% Training
+We first train the Discriminator by feeding it real (label = 1) original data and fake (label = 0) generated data alternating.
+
+\begin{figure}[h!]
+\centering
+\centerline{\includegraphics[scale=1]{models/Training Discriminator.png}}
+\caption{Discriminator Training with real and generated data}
+\label{fig:train_discriminator}
+\end{figure}
+
+After that we train our Generator by creating fake data and labelling them as true (label = 1), trying to fool the Generator and using the
+\begin{figure}[h!]
+\centering
+\centerline{\includegraphics[scale=1]{models/Training Generator.png}}
+\caption{Generator Training with generated data labelled true }
+\label{fig:train_generator}
+\end{figure}
+
+Doing these processes subsequently we are able to train our Discriminator and our Generator. The better one network gets, the better the other network gets (under good paramater settings).
 
 % model explanation
 % model pictures
+
+% Evaluation
+
+
+
 \subsection{MNIST dataset}
 We have decided on trying out our Generator on an easier dataset which contains a lot more training samples.
 % parameters / approaches tried
@@ -81,6 +106,14 @@ Nevertheless some structures can be seen and class artefacts can be made out fro
 % insert pictures which were good
 
 Daten mit viel struktur lassen sich leichter erlernen bzw. mit viel kontrast
+
+Accuracy for fake daa good from bhte beginning. Could be explained due to the fact that the Generator has learned only key features and thus
+extracted them which the CNN is able to pick up on without many iterations. This also explains why the accuracy drops after a while, since
+it tries to find more/hidden meaning behind the underlying structure of the generated picture, which does not exist within the fake data, since
+the Generator is not that good.
+Thus fake data works well to get a good initial prediction
+
+One needs to evaluate what takes more time: train a GAN or train the CNN/with real data
 
 Your task
 Your solutions (also describe failed approaches!)
