@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 
 \title{Exercise 3: Topic 3.4\\ Generation and Evaluation of Unstructured Synthetic Datasets}
-\author{Rafael Sterzinger, Christian Stipple, Fatjon Zogaj}
+\author{Rafael Sterzinger, Christian Stippler, Fatjon Zogaj}
 \date{January 31, 2020}
 
 \usepackage{graphicx}
@@ -12,7 +12,73 @@
 \maketitle
 
 \section{Introduction}
+For our third and last exercise we have decided to take on the experimental problem of generating unstructured synthetic datasets as well as evaluating on them afterwards.
+We have constructed our analysis on the following three datasets:
+\begin{itemize}
+    \item MNIST (Numbers)
+    \item FIDS30 (Fruits)
+    \item Human faces
+\end{itemize}
+Using the respective training datasets, we have trained a generator which is able to generate pictures.
+We have then trained three CNNs on:
+\begin{itemize}
+    \item training data
+    \item synthetically generated data
+    \item augmentated data
+\end{itemize}
+respectively and compared their performance in regards to the original test data. We have expanded on the exercises's assignment, by
+including augmentated data, created by flipping, zooming, rotating and changing the brightness level of the original data.
+This was done to get a general overview about how useful our data generation is and how it compares to more simple approaches.
 
+\subsection{Generative Adversarial Networks}
+For our image generation we have trained two deep networks called Generator and Discriminator, which compete against and cooperate with, each other,
+helping each other learn. In our case the Generator tries to create fake images and the Discriminator then gives feedback to the Generator,
+telling it why it is fake. This process continues until the Generator is able to generate images, which fool the Discriminator.
+
+Generator: From a 100-dimensional noise we create images using the opposite of convolution (transposed convolution).
+Adversarial Model or Generator-Discriminator
+
+
+Discriminator: Deep CNN which gives a probability [0,1] of how real the input looks. Instead of using max-pooling like in a typical
+CNN, we use strided convolution for downsampling.
+
+% general explanation
+% general pictures
+
+% model explanation
+% model pictures
+\subsection{MNIST dataset}
+We have decided on trying out our Generator on an easier dataset which contains a lot more training samples.
+% parameters / approaches tried
+
+% results
+    % some numbers were better/worse
+
+% conclusio dataset
+
+\subsection{FIDS30 dataset}
+For our next dataset we have decided on tackling the problem from another side trying to generate pictures based on a low amount of input data.
+
+We have also compared these results by increasing the amount of available training data.
+
+
+% parameters / approaches tried
+
+% results
+    % some colours were better etc
+
+
+% conclusio dataset
+
+\subsection{Conclusion}
+
+Looking at the plots above, we can see that the networks seem to converge to a point where the Discriminator is not able to
+differentiate between an original and a generated picture and thus only has to guess which explains the accuracy of around 50\%.
+Important to mention, is that the generated pictures still exhibit a lot of noise which makes them look synthetic and easily
+classifiable as synthetic to the human eye.
+% insert pictures which were not good
+Nevertheless some structures can be seen and class artefacts can be made out from them.
+% insert pictures which were good
 
 Your task
 Your solutions (also describe failed approaches!)

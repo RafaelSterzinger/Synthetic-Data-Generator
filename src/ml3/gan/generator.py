@@ -22,7 +22,7 @@ def build_generator():
 
     model.add(BatchNormalization(momentum=0.8))
     model.add(UpSampling2D())
-    model.add(Conv2D(cfg.SIZE, kernel_size=3, padding="same"))  # 64 instead of cfg.size
+    model.add(Conv2D(64, kernel_size=3, padding="same"))              # 64 instead of cfg.size
     model.add(LeakyReLU(alpha=0.2))
 
     model.add(BatchNormalization(momentum=0.8))
