@@ -79,6 +79,7 @@ class GAN():
 
             for iteration in range(num_batches):
                 # train generator, with discriminator predicting 1
+                # do not train Discriminator
                 noise = np.random.normal(0, 1, (batch_size, cfg.SEED_SIZE))
                 valid_y = np.array([1] * batch_size)
                 g_loss = self.combined_model.train_on_batch(noise, valid_y)
