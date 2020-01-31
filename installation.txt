@@ -1,9 +1,32 @@
-Provide a short how-to explaining the way to start your program
-(which is the main class/file, which command-line options does it
-expect, ..).
+download a data set and put it in the folder data/original
+the folder structure should be as following: mnist/class1
+                                                  /class2
+                                                  /class3
+                                                  ...
+we used the mnist and the fids30
+you can download the mnist dataset from the following source:
+https://www.kaggle.com/scolianni/mnistasjpg
 
-Download
+we will provide you with a sample
+                                                  
+the project was tested on python version 3.6.9
+installation:                                            
 pip install -r requirements.txt
-python version 3.6.9
-run main
-etc
+change the working directory of the main.py to be the projects root and set the src folder to contain the project's sources
+
+execute
+
+python main.py -d mnist
+
+to start the whole pipeline of the project for the mnist dataset, which should be located in data/original/mnist
+
+you can also start only one sub process, which are defined as following:
+'pre' for splitting the data, 'train' to train the GAN, 'gen' to generate synthetic images, and 'eval' to start the evaluation process
+
+e.g. execute
+
+python main.py -d mnist -m pre
+
+to start preprocessing on the mnist dataset
+
+there is also a config file located in src/config.py where you can adjust the most important parameters
