@@ -14,18 +14,18 @@ ZOOM_RANGE = [0.5, 1.0]
 ROTATION_RANGE = 25
 
 # GAN training
-GAN_EPOCHS = 1001
+GAN_EPOCHS = 2
 GAN_BATCH_SIZE = 6  # Batch size must be smaller than amount of samples
-SAVE_INTERVAL = 30
+SAVE_INTERVAL = 1
 SAVE_IMAGES = True
 LEARNING_RATE_DISCRIMINATOR = 0.0002
 LEARNING_RATE_GENERATOR = 0.0002
 SEED_SIZE = 100  # Random noise size to generate images
 
 # Image generation
-IMAGE_AMOUNT = 600
-EPOCH_OF_MODEL = 570 #GAN_EPOCHS - 1  # Here you can specify which generation of the model should generate the fake images
+IMAGE_AMOUNT = 10
+EPOCH_OF_MODEL = GAN_EPOCHS - 1  # Here you can specify which generation of the model should generate the fake images
 
 # Data evaluation
-EVAL_EPOCHS = 48
-EVAL_BATCH_SIZE = 12
+EVAL_EPOCHS = 2
+EVAL_BATCH_SIZE = 6
